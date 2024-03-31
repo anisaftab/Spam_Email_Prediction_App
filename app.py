@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from sklearn.feature_extraction.text import TfidfVectorizer
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.models import load_model
 from email import message_from_string
 import warnings
 import re
@@ -14,7 +15,16 @@ warnings.filterwarnings('ignore')
 
 log_reg_model = joblib.load("log_reg_model.pkl")
 sgd_model = joblib.load("sgdClassifier.pkl")
-vectorizer = joblib.load('vectorizer.joblib')
+lgbm_model = joblib.load('lgbm_model.pkl')
+
+phish_vectorizer = joblib.load('phish_vectorizer.joblib')
+spam_vectorizer = joblib.load('spam_vectorizer.joblib')
+nn_tokenizer = joblib.load('nn_tokenizer.joblib')
+
+def custom_initializer(shape, dtype=None):
+    return tf.random.normal(shape, mean=0.0, stddev=0.1, dtype=dtype)
+nn_model = load_model("nn_model.keras", custom_objects={'custom_initializer': custom_initializer})
+
 
 #Function to convert MIME to plain text
 def mime_to_text(mime_text):
@@ -67,20 +77,39 @@ def main():
     if st.button("Analyze"):
         # Perform analysis and calculate spam percentage
         phish_percentage = phish_analyze(email)
-        
-        # Display spam percentage
+        spam_percentage = spam_analyze(email)
+
+        # Display phishing and spam percentages
         st.write(f"Phishing Email Chance: {phish_percentage}%")
+        st.write(f"Spam Email Chance: {spam_percentage}%")
+
+
 
 def phish_analyze(email):
     text = preprocess(email)
-    text = vectorizer.transform([text])
- 
+    text = phish_vectorizer.transform([text])
+
     log_reg_prediction = log_reg_model.predict(text) * 100
     sgd_prediction = sgd_model.predict(text) * 100
-    print('log reg:', log_reg_prediction)
-    print('sgd: ', sgd_prediction)
+
     average = (log_reg_prediction + sgd_prediction)/2
     return  int(average)
+
+
+def spam_analyze(email):
+    text = preprocess(email)
+
+    spam_text = spam_vectorizer.transform([text])
+
+    nn_text_tokenized = nn_tokenizer.texts_to_sequences([text])
+    nn_text_padded = pad_sequences(nn_text_tokenized, maxlen=14804 )
+
+    nn_prediction = nn_model.predict(nn_text_padded) * 100
+    lgbm_prediction = lgbm_model.predict(spam_text) * 100
+    print('nn: ', nn_prediction)
+    average = (nn_prediction + lgbm_prediction) / 2
+
+    return int(average)
 
 def preprocess(email_text):
     email_text = email_text.lower().strip()
@@ -89,13 +118,6 @@ def preprocess(email_text):
     email_text = mime_to_text(email_text)  
     email_text = html_to_text(email_text)  
     return email_text
-
-
-def preprocess_email_lightgbm(email):
-    email_array = [email]
-    lightgbm_text = vectorizer.transform(email_array)
-
-    return lightgbm_text
 
 if __name__ == "__main__":
     main()
