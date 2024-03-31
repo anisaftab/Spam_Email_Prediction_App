@@ -90,9 +90,8 @@ def phish_analyze(email):
     text = phish_vectorizer.transform([text])
 
     log_reg_prediction = log_reg_model.predict(text) * 100
-    sgd_prediction = sgd_model.predict(text) * 100
-
-    average = (log_reg_prediction + sgd_prediction)/2
+    #sgd_prediction = sgd_model.predict(text) * 100
+    average = log_reg_prediction
     return  int(average)
 
 
@@ -106,8 +105,9 @@ def spam_analyze(email):
 
     nn_prediction = nn_model.predict(nn_text_padded) * 100
     lgbm_prediction = lgbm_model.predict(spam_text) * 100
-    print('nn: ', nn_prediction)
-    average = (nn_prediction + lgbm_prediction) / 2
+    print(nn_prediction)
+    print(lgbm_prediction)
+    average = (nn_prediction * 0.8 + lgbm_prediction * 0.2) / 2
 
     return int(average)
 
