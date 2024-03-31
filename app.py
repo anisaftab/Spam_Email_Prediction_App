@@ -71,8 +71,14 @@ def html_to_text(text):
 def main():
     st.title("Email Spam and Phishing Detector")
     
+    #Initialize the email input in session state if it doesn't exist
+    if 'email_input' not in st.session_state:
+        st.session_state.email_input = ""
+
+    
+
     #Text input for email
-    email = st.text_area("Enter email here", key="email_input")
+    email = st.text_area("Enter email here", key='email_input', value=st.session_state.email_input)
     #Button to analyze email
     if st.button("Analyze"):
         # Perform analysis and calculate spam percentage
@@ -80,8 +86,12 @@ def main():
         spam_percentage = spam_analyze(email)
 
         # Display phishing and spam percentages
-        st.write(f"Phishing Email Chance: {phish_percentage}%")
+        #st.write(f"Phishing Email Chance: {phish_percentage}%")
         st.write(f"Spam Email Chance: {spam_percentage}%")
+
+    if st.button('Reset'):
+        st.session_state.email_input = ""
+        st.experimental_rerun()  
 
 
 
@@ -107,7 +117,7 @@ def spam_analyze(email):
     lgbm_prediction = lgbm_model.predict(spam_text) * 100
     print(nn_prediction)
     print(lgbm_prediction)
-    average = (nn_prediction * 0.8 + lgbm_prediction * 0.2) / 2
+    average = (nn_prediction *0.8 + lgbm_prediction *0.2 ) / 2
 
     return int(average)
 
