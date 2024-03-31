@@ -1,6 +1,5 @@
 import streamlit as st
 import joblib
-import streamlit as st
 import tensorflow as tf
 from tensorflow import keras
 from bs4 import BeautifulSoup
@@ -13,9 +12,9 @@ import re
 
 warnings.filterwarnings('ignore')
 
-lgbm_model = joblib.load("lgbm_model.pkl")
+log_reg_model = joblib.load("log_reg_model.pkl")
 sgd_model = joblib.load("sgdClassifier.pkl")
-
+vectorizer = joblib.load('vectorizer.joblib')
 
 #Function to convert MIME to plain text
 def mime_to_text(mime_text):
@@ -60,53 +59,43 @@ def html_to_text(text):
 
 
 def main():
-    st.title("Email Analysis")
+    st.title("Email Spam and Phishing Detector")
     
     #Text input for email
     email = st.text_area("Enter email here", key="email_input")
     #Button to analyze email
     if st.button("Analyze"):
         # Perform analysis and calculate spam percentage
-        spam_percentage = analyze_email(email)
+        phish_percentage = phish_analyze(email)
         
         # Display spam percentage
-        st.write(f"Spam Percentage: {spam_percentage}%")
+        st.write(f"Phishing Email Chance: {phish_percentage}%")
 
-def analyze_email(email):
-    lightgbm_text = preprocess(email)
-    #lgbm_prediction = lgbm_model.predict(lightgbm_text) * 100
+def phish_analyze(email):
+    text = preprocess(email)
+    text = vectorizer.transform([text])
+ 
+    log_reg_prediction = log_reg_model.predict(text) * 100
+    sgd_prediction = sgd_model.predict(text) * 100
+    print('log reg:', log_reg_prediction)
+    print('sgd: ', sgd_prediction)
+    average = (log_reg_prediction + sgd_prediction)/2
+    return  int(average)
 
-    sgd_text = preprocess_email_sgd_logReg(email)
-    sgd_prediction = sgd_model.predict(sgd_text) * 100
-    
-    return max(sgd_prediction, 0)
-
-def preprocess(email):
-    email.lower()
-    mime_to_text(email)
-    html_to_text(email)
-    email = re.sub(r"\s+", " ", email)
-    email = re.sub(r"[^\w\s]", "", email)
-    email.strip()
-    preprocess_email_sgd_logReg(email)
-    return email
+def preprocess(email_text):
+    email_text = email_text.lower().strip()
+    email_text = re.sub(r"\s+", " ", email_text) 
+    email_text = re.sub(r"[^\w\s]", "", email_text) 
+    email_text = mime_to_text(email_text)  
+    email_text = html_to_text(email_text)  
+    return email_text
 
 
 def preprocess_email_lightgbm(email):
-    # Add your email preprocessing logic here
-    # This is just a placeholder
-    
-    vectorizer = TfidfVectorizer(max_features=14804, stop_words='english')
     email_array = [email]
     lightgbm_text = vectorizer.transform(email_array)
 
     return lightgbm_text
-
-def preprocess_email_sgd_logReg(email):
-    #Encoding the features column
-    vectorizer = joblib.load('vectorizer.joblib')
-    sgd_logReg_text = vectorizer.transform([email])
-    return sgd_logReg_text
 
 if __name__ == "__main__":
     main()
