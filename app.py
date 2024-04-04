@@ -75,7 +75,6 @@ def main():
     if 'email_input' not in st.session_state:
         st.session_state.email_input = ""
 
-    
 
     #Text input for email
     email = st.text_area("Enter email here", key='email_input', value=st.session_state.email_input)
@@ -88,10 +87,6 @@ def main():
         # Display phishing and spam percentages
         #st.write(f"Phishing Email Chance: {phish_percentage}%")
         st.write(f"Spam Email Chance: {spam_percentage}%")
-
-    if st.button('Reset'):
-        st.session_state.email_input = ""
-        st.experimental_rerun()  
 
 
 
