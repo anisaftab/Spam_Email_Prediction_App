@@ -16,12 +16,14 @@ import re
 warnings.filterwarnings('ignore')
 
 lgbm_model = joblib.load('lgbm_model.pkl')
+nn_model = load_model('nn_model.h5')
 
 logistic_regression_model = joblib.load('logistic_regression_model.pkl')
 sgd_classifier = joblib.load('sgd_classifier.pkl')
 
 spam_vectorizer = joblib.load('spam_vectorizer.joblib')
 phish_vectorizer = joblib.load('phish_vectorizer.joblib')
+nn_tokenizer = joblib.load('tokenizer.joblib')
 
 
 def main():
