@@ -40,7 +40,7 @@ def main():
 
 
     #Text input for email
-    email = st.text_area("Enter email here", key='email_input', value=st.session_state.email_input)
+    email = st.text_area("Enter email here", height= 250 , key='email_input', value=st.session_state.email_input)
 
     #Button to analyze email
     if st.button("Analyze"):
@@ -48,8 +48,10 @@ def main():
         spam_percentage = spam_analyze(email)
         phish_percentage = phish_analyze(email)
 
-        if heuristic_filter(email):
-            st.write("Spam/Phishing email!!!")
+        if email == "":
+            st.write("Please enter an email to analyze")
+        elif heuristic_filter(email):
+            st.write("<p style='color:red; font-size:20px;'>Spam/Phishing email!! </p>", unsafe_allow_html=True)
         else:
             spam_flag = None
             phish_flag = None
@@ -66,6 +68,14 @@ def main():
             # Display phishing and spam percentages
             st.write("Spam Email:", spam_flag)
             st.write("Phishing Email:", phish_flag)
+
+
+            st.write("Developed by Anis, Terrence, and Noah")
+            st.write("Project under the supervision of Mohamad Hoda")
+
+
+    
+            
 
         
 def heuristic_filter(email):
