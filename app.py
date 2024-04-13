@@ -16,15 +16,19 @@ from langdetect import detect
 
 warnings.filterwarnings('ignore')
 
+
+def custom_initializer(shape, dtype=None):
+        return tf.random.normal(shape, mean=0.0, stddev=0.1, dtype=dtype)
+
 lgbm_model = joblib.load('lgbm_model.pkl')
-nn_model = load_model('nn_model.h5')
+nn_model = tf.keras.models.load_model('nn_model.keras', custom_objects={'custom_initializer': custom_initializer})
 
 logistic_regression_model = joblib.load('logistic_regression_model.pkl')
 sgd_classifier = joblib.load('sgd_classifier.pkl')
 
 spam_vectorizer = joblib.load('spam_vectorizer.joblib')
 phish_vectorizer = joblib.load('phish_vectorizer.joblib')
-nn_tokenizer = joblib.load('tokenizer.joblib')
+nn_tokenizer = joblib.load('nn_tokenizer.joblib')
 
 
 def main():
