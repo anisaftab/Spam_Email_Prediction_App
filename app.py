@@ -12,6 +12,7 @@ import base64
 import quopri
 import warnings
 import re
+from langdetect import detect
 
 warnings.filterwarnings('ignore')
 
@@ -43,21 +44,62 @@ def main():
         spam_percentage = spam_analyze(email)
         phish_percentage = phish_analyze(email)
 
-        spam_flag = None
-        phish_flag = None
+        if heuristic_filter(email):
+            st.write("Spam/Phishing email!!!")
+        else:
+            spam_flag = None
+            phish_flag = None
 
-        if spam_percentage == 0:
-            spam_flag = False 
-        else: spam_flag = True
+            if spam_percentage == 0:
+                spam_flag = False 
+            else: spam_flag = True
 
 
-        if phish_percentage == 0:
-            phish_flag = False 
-        else: phish_flag = True
+            if phish_percentage == 0:
+                phish_flag = False 
+            else: phish_flag = True
 
-        # Display phishing and spam percentages
-        st.write("Spam Email:", spam_flag)
-        st.write("Phishing Email:", phish_flag)
+            # Display phishing and spam percentages
+            st.write("Spam Email:", spam_flag)
+            st.write("Phishing Email:", phish_flag)
+
+        
+def heuristic_filter(email):
+    # Check for hidden text using zero-width characters
+    if not check_hidden_text(email):
+        return True
+    # Check for language other than English
+    if detect_language(email):
+        return True
+    if high_risk_words(email):
+        return True
+    return False
+
+def high_risk_words(email):
+    if ( 'urgent send money' in email):
+        return True
+    return False
+# Function to detect the language of the email content
+def detect_language(email_content):
+    try:
+        detected_lang = detect(email_content)
+        if detected_lang and detected_lang != 'en':
+            return True
+    except Exception as e:
+        st.error(f"Error occurred during language detection: {e}")
+        return None
+    return False
+    
+# Function to check for hidden text using zero-width characters
+def check_hidden_text(content):
+    hidden_text_patterns = [
+        r'[\u200B-\u200D\uFEFF]',  # Zero-width characters
+        r'[\u2060-\u2064]'          # Invisible Unicode characters
+    ]
+    for pattern in hidden_text_patterns:
+        if re.search(pattern, content):
+            return False
+    return True
 
 
 def spam_analyze(email):
