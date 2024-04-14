@@ -14,6 +14,11 @@ import warnings
 import re
 from langdetect import detect
 
+st.set_page_config(
+        page_title="Spam/Phishing Email Detector App",
+        page_icon="✉️",
+        layout="centered"
+    )
 warnings.filterwarnings('ignore')
 
 
@@ -33,7 +38,6 @@ nn_tokenizer = joblib.load('nn_tokenizer.joblib')
 
 def main():
     st.title("Spam and Phishing Email Detector")
-    st.set_page_config(page_title="Spam/Phishing Email Prediction App")
     
     #Initialize the email input in session state if it doesn't exist
     if 'email_input' not in st.session_state:
@@ -41,7 +45,7 @@ def main():
 
 
     #Text input for email
-    email = st.text_area("Enter email here", height= 250 , key='email_input', value=st.session_state.email_input)
+    email = st.text_area("Enter email here", height= 200 , key='email_input', value=st.session_state.email_input)
 
     #Button to analyze email
     if st.button("Analyze"):
@@ -67,18 +71,18 @@ def main():
             else: phish_flag = True
 
             # Display phishing and spam percentages
-            st.write("Spam Email:", spam_flag)
-            st.write("Phishing Email:", phish_flag)
+            if spam_flag == False and phish_flag == False:
+                st.write(f"<p style='color:green; font-size:20px;'>Spam email: {spam_flag}</p>", unsafe_allow_html=True)
+                st.write(f"<p style='color:green; font-size:20px;'>Phishing email: {phish_flag}</p>", unsafe_allow_html=True)
+                st.write("<p style='color:green; font-size:20px;'>Email is safe! </p>", unsafe_allow_html=True)
+            else:
+                st.write(f"<p style='color:red; font-size:20px;'>Spam email: {spam_flag}</p>", unsafe_allow_html=True)
+                st.write(f"<p style='color:red; font-size:20px;'>Phishing email: {phish_flag}</p>", unsafe_allow_html=True)
 
-
-    st.write("Developed by Anis, Terrence, and Noah")
-    st.write("Project under the supervision of Mohamad Hoda")
-
+    st.write("Developed by: [Anis](https://github.com/anisaftab), [Terrence](https://github.com/terrenceme15), & [Noah](https://github.com/jnnoah). Under the supervision of Prof. Dr. Mohamad Hoda.")
+    st.write("Jupyter Notebook: [Honours Project.ipynb](https://colab.research.google.com/drive/14i_zFGEuhZI8neOnw00AxBiEW-Fgi91D?usp=sharing)")  
 
     
-            
-
-        
 def heuristic_filter(email):
     # Check for hidden text using zero-width characters
     if not check_hidden_text(email):
@@ -119,7 +123,6 @@ def check_hidden_text(content):
 
 def spam_analyze(email):
     text = preprocess(email)
-    print(text)
     spam_text = spam_vectorizer.transform([text])
     lgbm_prediction = lgbm_model.predict(spam_text) * 100
     print('LGBM prediction:', lgbm_prediction)
@@ -127,7 +130,6 @@ def spam_analyze(email):
 
 def phish_analyze(email):
     text = preprocess(email)
-    print(text)
     phish_text = phish_vectorizer.transform([text])
     sgd_prediction = sgd_classifier.predict(phish_text) * 100
     logistic_regression_prediction = logistic_regression_model.predict(phish_text) * 100
